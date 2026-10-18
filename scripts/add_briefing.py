@@ -8,8 +8,15 @@ SECTIONS = ["📌 모두의창업 시즌3 · 재도전", "📋 신규 공고", "
 URL = re.compile(r'(https?://[^\s<>"]+)')
 
 def cell(v):
-    s = html.escape(str(v or ""))
-    return URL.sub(lambda m: f'<a href="{m.group(1)}" target="_blank" rel="noopener">{m.group(1)}</a>', s)
+    s = html.escape(str(v or ""), quote=False)
+    links = []
+    def keep(m):
+        links.append(f'<a href="{m.group(2)}" target="_blank" rel="noopener">{m.group(1)}</a>'); return f"\x00{len(links)-1}\x00"
+    s = re.sub(r'\[([^\]]+)\]\((https?://[^)\s]+)\)', keep, s)
+    s = URL.sub(lambda m: f'<a href="{m.group(1)}" target="_blank" rel="noopener">{m.group(1)}</a>', s)
+    s = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', s)
+    s = re.sub(r'`([^`]+)`', r'<code>\1</code>', s)
+    return re.sub(r'\x00(\d+)\x00', lambda m: links[int(m.group(1))], s)
 
 def table(sec):
     cols = sec.get("columns") or []
@@ -32,7 +39,7 @@ def day_html(d, data, prev, nxt):
     nav = '<nav class="pn">' + (f'<a href="{prev}.html">← {prev}</a>' if prev else '<span></span>') + '<a href="../index.html">목록</a>' + (f'<a href="{nxt}.html">{nxt} →</a>' if nxt else '<span></span>') + '</nav>'
     secs = {s.get("title"): s for s in data.get("sections", [])}
     body = [nav, f'<h1>{d} 브리핑</h1>']
-    if data.get("note"): body.append(f'<p class="note">{cell(data["note"])}</p>')
+    for n in ([data["note"]] if isinstance(data.get("note"), str) else data.get("note") or []): body.append(f'<p class="note">{cell(n)}</p>')
     for t in SECTIONS:
         body.append(f'<section><h2>{t}</h2>{table(secs.get(t, {}))}</section>')
     body.append(nav)
