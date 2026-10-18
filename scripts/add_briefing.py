@@ -28,9 +28,9 @@ def table(sec):
         r = list(r) + [""] * (len(cols) - len(r))
         star = "⭐" if str(r[0]).strip() in ("⭐", "*", "true", "True", "1") else ""
         tds = [f'<td data-l="{html.escape(c)}">{cell(v)}</td>' for c, v in zip(cols[2:], r[2:])]
-        ms = f'<span class="mstar">{star} </span>' if star else ''
-        h.append('<tr>' + f'<td data-l="추천" class="star">{star}</td>' +
-                 f'<td data-l="{html.escape(cols[1])}" class="head">{ms}{cell(r[1])}</td>' + ''.join(tds) + '</tr>')
+        tr = '<tr class="rec">' if star else '<tr>'
+        h.append(tr + f'<td data-l="추천" class="star">{star}</td>' +
+                 f'<td data-l="{html.escape(cols[1])}">{cell(r[1])}</td>' + ''.join(tds) + '</tr>')
     h.append('</tbody></table></div>')
     return ''.join(h)
 
