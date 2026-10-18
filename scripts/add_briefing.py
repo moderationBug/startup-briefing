@@ -27,21 +27,24 @@ def table(sec):
     for r in rows:
         r = list(r) + [""] * (len(cols) - len(r))
         star = "⭐" if str(r[0]).strip() in ("⭐", "*", "true", "True", "1") else ""
+        tds = [f'<td data-l="{html.escape(c)}">{cell(v)}</td>' for c, v in zip(cols[2:], r[2:])]
+        ms = f'<span class="mstar">{star} </span>' if star else ''
         h.append('<tr>' + f'<td data-l="추천" class="star">{star}</td>' +
-                 ''.join(f'<td data-l="{html.escape(c)}">{cell(v)}</td>' for c, v in zip(cols[1:], r[1:])) + '</tr>')
+                 f'<td data-l="{html.escape(cols[1])}" class="head">{ms}{cell(r[1])}</td>' + ''.join(tds) + '</tr>')
     h.append('</tbody></table></div>')
     return ''.join(h)
 
 def page(title, body, css):
     return f'''<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(title)}</title><link rel="stylesheet" href="{css}"></head><body><main>{body}</main></body></html>\n'''
 
+def sections_html(data):
+    secs = {s.get("title"): s for s in data.get("sections", [])}
+    out = [f'<p class="note">{cell(n)}</p>' for n in ([data["note"]] if isinstance(data.get("note"), str) else data.get("note") or [])]
+    return ''.join(out + [f'<section><h2>{t}</h2>{table(secs.get(t, {}))}</section>' for t in SECTIONS])
+
 def day_html(d, data, prev, nxt):
     nav = '<nav class="pn">' + (f'<a href="{prev}.html">← {prev}</a>' if prev else '<span></span>') + '<a href="../index.html">목록</a>' + (f'<a href="{nxt}.html">{nxt} →</a>' if nxt else '<span></span>') + '</nav>'
-    secs = {s.get("title"): s for s in data.get("sections", [])}
-    body = [nav, f'<h1>{d} 브리핑</h1>']
-    for n in ([data["note"]] if isinstance(data.get("note"), str) else data.get("note") or []): body.append(f'<p class="note">{cell(n)}</p>')
-    for t in SECTIONS:
-        body.append(f'<section><h2>{t}</h2>{table(secs.get(t, {}))}</section>')
+    body = [nav, f'<h1>{d} 브리핑</h1>', sections_html(data)]
     body.append(nav)
     return page(f'{d} 창업 정보 브리핑', ''.join(body), '../style.css')
 
@@ -60,7 +63,9 @@ def main():
     json.dump({"dates": dates[::-1]}, open("data/briefings.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     body = ['<h1>창업 정보 데일리 브리핑</h1><p class="sub">IT 예비창업자를 위한 정부·지역 창업지원 정보 요약</p>']
     if dates:
-        body.append(f'<a class="latest" href="briefings/{dates[-1]}.html">최신 브리핑: {dates[-1]} →</a><h2>이력</h2><ul class="hist">' +
+        latest = json.load(open(f"content/{dates[-1]}.json", encoding="utf-8"))
+        body.append(f'<h2 class="today">최신 브리핑 · {dates[-1]} <a class="perma" href="briefings/{dates[-1]}.html">개별 페이지</a></h2>' + sections_html(latest))
+        body.append('<h2>지난 브리핑</h2><ul class="hist">' +
                     ''.join(f'<li><a href="briefings/{d}.html">{d}</a></li>' for d in dates[::-1]) + '</ul>')
     else:
         body.append('<p class="empty">아직 게시된 브리핑이 없습니다.</p>')
