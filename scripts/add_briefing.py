@@ -4,7 +4,8 @@ Usage: python3 scripts/add_briefing.py content/YYYY-MM-DD.json   (or no arg: jus
 """
 import json, sys, os, html, re
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SECTIONS = ["📌 모두의창업 시즌3 · 재도전", "📋 신규 공고", "⏰ 마감 임박", "🐦 X 동향", "🔍 확인 현황"]
+SECTIONS = ["📌 모두의창업 시즌3 · 재도전", "📋 신규 공고", "⏰ 마감 임박", "🗓 연간 주요 프로그램", "🐦 X 동향", "🔍 확인 현황"]
+OPTIONAL = {"🗓 연간 주요 프로그램"}  # omitted when absent from a day's JSON
 URL = re.compile(r'(https?://[^\s<>"]+)')
 
 def cell(v):
@@ -40,7 +41,7 @@ def page(title, body, css):
 def sections_html(data):
     secs = {s.get("title"): s for s in data.get("sections", [])}
     out = [f'<p class="note">{cell(n)}</p>' for n in ([data["note"]] if isinstance(data.get("note"), str) else data.get("note") or [])]
-    return ''.join(out + [f'<section><h2>{t}</h2>{table(secs.get(t, {}))}</section>' for t in SECTIONS])
+    return ''.join(out + [f'<section><h2>{t}</h2>{table(secs.get(t, {}))}</section>' for t in SECTIONS if t not in OPTIONAL or t in secs])
 
 def day_html(d, data, prev, nxt):
     nav = '<nav class="pn">' + (f'<a href="{prev}.html">← {prev}</a>' if prev else '<span></span>') + '<a href="../index.html">목록</a>' + (f'<a href="{nxt}.html">{nxt} →</a>' if nxt else '<span></span>') + '</nav>'
