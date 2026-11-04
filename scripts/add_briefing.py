@@ -4,8 +4,8 @@ Usage: python3 scripts/add_briefing.py content/YYYY-MM-DD.json   (or no arg: jus
 """
 import json, sys, os, html, re
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SECTIONS = ["📌 모두의창업 시즌3 · 재도전", "📋 신규 공고", "⏰ 마감 임박", "🗓 연간 주요 프로그램", "🐦 X 동향", "🔍 확인 현황"]
-OPTIONAL = {"🗓 연간 주요 프로그램"}  # omitted when absent from a day's JSON
+SECTIONS = ["📌 모두의창업 시즌3 · 재도전", "📋 신규 공고", "⏰ 마감 임박", "📂 신청 가능 공고", "🗓 연간 주요 프로그램", "🐦 X 동향", "🔍 확인 현황"]
+OPTIONAL = {"🗓 연간 주요 프로그램", "📂 신청 가능 공고"}  # omitted when absent from a day's JSON
 URL = re.compile(r'(https?://[^\s<>"]+)')
 
 def cell(v):
