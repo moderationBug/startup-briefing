@@ -27,10 +27,16 @@ def table(sec):
     h = ['<div class="tw"><table><thead><tr>'] + [f'<th>{html.escape(c)}</th>' for c in cols] + ['</tr></thead><tbody>']
     for r in rows:
         r = list(r) + [""] * (len(cols) - len(r))
-        star = "⭐" if str(r[0]).strip() in ("⭐", "*", "true", "True", "1") else ""
+        raw = str(r[0]).strip()
+        marks = []
+        if "⭐" in raw or raw in ("*", "true", "True", "1"):
+            marks.append("⭐")
+        if "📵" in raw:
+            marks.append("📵")
+        mark = "".join(marks)
         tds = [f'<td data-l="{html.escape(c)}">{cell(v)}</td>' for c, v in zip(cols[2:], r[2:])]
-        tr = '<tr class="rec">' if star else '<tr>'
-        h.append(tr + f'<td data-l="추천" class="star">{star}</td>' +
+        tr = '<tr class="rec">' if mark else '<tr>'
+        h.append(tr + f'<td data-l="추천" class="star">{mark}</td>' +
                  f'<td data-l="{html.escape(cols[1])}">{cell(r[1])}</td>' + ''.join(tds) + '</tr>')
     h.append('</tbody></table></div>')
     return ''.join(h)
